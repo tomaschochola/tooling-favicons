@@ -4,9 +4,13 @@
     "name": "Tomáš Chochola",
     "url": "https://github.com/tomaschochola"
   },
+  "bin": {
+    "generate-icons": "./src/generate-icons-cli.js",
+    "render-icon": "./src/render-icon-cli.js"
+  },
   "bugs": {
     "email": "tomaschochola@tomaschochola.cz",
-    "url": "https://github.com/tomaschochola/tooling-TODO/issues"
+    "url": "https://github.com/tomaschochola/tooling-favicons/issues"
   },
   "contributors": [
     {
@@ -15,33 +19,54 @@
       "url": "https://github.com/tomaschochola"
     }
   ],
-  "dependencies": {},
-  "description": "@tomaschochola/tooling-TODO",
+  "dependencies": {
+    "sharp": "^0.35.3",
+    "svgo": "^4.0.2"
+  },
+  "description": "@tomaschochola/tooling-favicons",
   "devDependencies": {
     "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#1.x",
-    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x"
+    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x",
+    "@tomaschochola/tooling-typescript": "github:tomaschochola/tooling-typescript#1.x"
   },
   "engines": {
     "node": ">=24.11.0 <25.0.0",
     "npm": ">=11.0.0 <12.0.0"
   },
+  "files": [
+    "src"
+  ],
   "funding": {
     "type": "github",
     "url": "https://github.com/sponsors/tomaschochola"
   },
-  "homepage": "https://github.com/tomaschochola/tooling-TODO",
+  "homepage": "https://github.com/tomaschochola/tooling-favicons",
   "keywords": [
     "tomaschochola",
     "TomasChochola",
     "Tomas Chochola",
     "Tomáš Chochola",
-    "tooling-TODO"
+    "tooling-favicons"
   ],
   "license": "CC-BY-ND-4.0",
   "main": "./src/index.js",
-  "name": "@tomaschochola/tooling-TODO",
+  "name": "@tomaschochola/tooling-favicons",
   "packageManager": "npm@11.16.0",
-  "repository": "github:tomaschochola/tooling-TODO",
-  "sideEffects": false,
-  "type": "module"
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.js"
+    },
+    "./cli": {
+      "types": "./src/cli.ts",
+      "default": "./src/cli.js"
+    }
+  },
+  "repository": "github:tomaschochola/tooling-favicons",
+  "sideEffects": [
+    "./src/generate-icons-cli.js",
+    "./src/render-icon-cli.js"
+  ],
+  "type": "module",
+  "types": "./src/index.ts"
 }
