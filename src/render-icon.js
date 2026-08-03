@@ -10,13 +10,15 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import { mkdir, mkdtemp, rename, rm, stat } from 'node:fs/promises';
-import { dirname, extname, join, resolve } from 'node:path';
+import { mkdir, mkdtemp, rename, rm } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import sharp from 'sharp';
+import { imageSourceExtension } from './source.js';
 
-const supportedExtensions = new Set(['.jpeg', '.jpg', '.png', '.svg']);
+const defaultSvgDensity = 72;
 const maximumDimension = 16_384;
 const maximumPixels = 100_000_000;
+const maximumSvgDensity = 100_000;
 
 const transparent = Object.freeze({
   alpha: 0,
@@ -25,20 +27,42 @@ const transparent = Object.freeze({
   r: 0,
 });
 
-async function assertSource(source) {
-  const sourceStat = await stat(source);
+async function sourceDensity(source, extension, contentSize) {
+  const metadata = await sharp(source, {
+    animated: false,
+    density: defaultSvgDensity,
+    failOn: 'error',
+    limitInputPixels: maximumPixels,
+  }).metadata();
 
-  if (!sourceStat.isFile()) {
-    throw new TypeError(`Source must be a file: ${source}`);
+  if ((metadata.pages ?? 1) !== 1) {
+    throw new TypeError('Animated and multi-page image sources are not supported.');
   }
 
-  const extension = extname(source).toLowerCase();
-
-  if (!supportedExtensions.has(extension)) {
-    throw new TypeError('Source must be an SVG, PNG, JPEG, or JPG file.');
+  if (
+    !Number.isSafeInteger(metadata.width)
+    || !Number.isSafeInteger(metadata.height)
+    || metadata.width < 1
+    || metadata.height < 1
+    || metadata.width * metadata.height > maximumPixels
+  ) {
+    throw new RangeError(`Decoded image must contain between 1 and ${String(maximumPixels)} pixels.`);
   }
 
-  return extension;
+  if (extension !== '.svg') {
+    return undefined;
+  }
+
+  const largestDimension = Math.max(metadata.width ?? 0, metadata.height ?? 0);
+
+  if (largestDimension < 1) {
+    throw new TypeError('SVG source must have intrinsic dimensions or a viewBox.');
+  }
+
+  return Math.min(
+    maximumSvgDensity,
+    Math.max(defaultSvgDensity, Math.ceil((defaultSvgDensity * contentSize) / largestDimension)),
+  );
 }
 
 export async function renderIcon({
@@ -71,8 +95,9 @@ export async function renderIcon({
 
   const sourcePath = resolve(source);
   const outputPath = resolve(output);
-  const extension = await assertSource(sourcePath);
+  const extension = await imageSourceExtension(sourcePath);
   const outputDirectory = dirname(outputPath);
+  const density = await sourceDensity(sourcePath, extension, contentSize);
 
   await mkdir(outputDirectory, {
     recursive: true,
@@ -86,13 +111,10 @@ export async function renderIcon({
 
   try {
     let image = sharp(sourcePath, {
-      ...(extension === '.svg'
-        ? {
-            density: 300,
-          }
-        : {}),
+      animated: false,
+      ...(density === undefined ? {} : { density }),
       failOn: 'error',
-      limitInputPixels: 100_000_000,
+      limitInputPixels: maximumPixels,
     })
       .autoOrient()
       .resize(contentSize, contentSize, {
@@ -118,6 +140,7 @@ export async function renderIcon({
       .png({
         adaptiveFiltering: true,
         compressionLevel: 9,
+        palette: false,
       })
       .toFile(temporaryOutput);
 

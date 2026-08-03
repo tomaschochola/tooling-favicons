@@ -1,27 +1,21 @@
 {
-  "containerUser": "node",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "customizations": {
     "vscode": {
-      "extensions": ["EditorConfig.EditorConfig", "Tyriar.sort-lines", "docker.docker", "ms-vscode.makefile-tools"],
+      "extensions": ["EditorConfig.EditorConfig"],
       "settings": {
-        "editor.codeActionsOnSave": {
-          "source.organizeImports": "always",
-          "source.organizeLinkDefinitions": "always",
-          "source.sort.json": "always"
-        },
         "files.insertFinalNewline": true,
         "files.trimFinalNewlines": true,
         "files.trimTrailingWhitespace": true
       }
     }
   },
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {},
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:24-trixie",
   "init": true,
-  "initializeCommand": "make precreate",
-  "postCreateCommand": "make postcreate",
-  "remoteUser": "node"
+  "postCreateCommand": ["make", "postcreate"],
+  "remoteUser": "node",
+  "updateRemoteUserUID": true,
+  "waitFor": "postCreateCommand",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
 }

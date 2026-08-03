@@ -10,29 +10,51 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import { execFile } from 'node:child_process';
 import {
   mkdir,
   mkdtemp,
   readFile,
   rename,
   rm,
-  stat,
-  unlink,
   writeFile,
 } from 'node:fs/promises';
 import {
   dirname,
-  extname,
   join,
   resolve,
 } from 'node:path';
-import { promisify } from 'node:util';
+import sharp from 'sharp';
 import { optimize } from 'svgo';
+import { createIco } from './ico.js';
 import { renderIcon } from './render-icon.js';
+import { imageSourceExtension } from './source.js';
 
-const execute = promisify(execFile);
-const supportedExtensions = new Set(['.jpeg', '.jpg', '.png', '.svg']);
+const maskableSafeZoneSquareRatio = 9 / 16;
+const maximumSvgElements = 100_000;
+
+const staticSvgForbiddenElements = new Set([
+  'a',
+  'animate',
+  'animatemotion',
+  'animatetransform',
+  'audio',
+  'discard',
+  'embed',
+  'foreignobject',
+  'iframe',
+  'image',
+  'object',
+  'script',
+  'set',
+  'text',
+  'textpath',
+  'tspan',
+  'video',
+]);
+
+const staticSvgCssControlPattern = /@import\b|@keyframes\b/iu;
+const staticSvgCssUrlPattern = /url\s*\(/iu;
+const staticSvgInternalCssUrlPattern = /url\s*\(\s*(["']?)#[^)"'\s]+\1\s*\)/giu;
 
 const outputNames = Object.freeze([
   'apple-touch-icon.png',
@@ -47,20 +69,97 @@ const outputNames = Object.freeze([
   'maskable-icon-1024x1024.png',
 ]);
 
-async function assertSource(source) {
-  const sourceStat = await stat(source);
+function assertStaticSvgValue(value) {
+  const withoutInternalReferences = value.replace(staticSvgInternalCssUrlPattern, '');
 
-  if (!sourceStat.isFile()) {
-    throw new TypeError(`Source must be a file: ${source}`);
+  if (
+    staticSvgCssControlPattern.test(value)
+    || staticSvgCssUrlPattern.test(withoutInternalReferences)
+  ) {
+    throw new TypeError('SVG source must be static and self-contained.');
+  }
+}
+
+const assertStaticSvgPlugin = Object.freeze({
+  name: 'assertStaticSvg',
+  fn: () => {
+    let elementCount = 0;
+
+    return {
+      doctype: {
+        enter: () => {
+          throw new TypeError('SVG source must not contain a document type declaration.');
+        },
+      },
+      instruction: {
+        enter: (node) => {
+          if (node.name.toLowerCase() !== 'xml') {
+            throw new TypeError('SVG source must not contain processing instructions.');
+          }
+        },
+      },
+      element: {
+        enter: (node) => {
+          elementCount += 1;
+
+          if (elementCount > maximumSvgElements) {
+            throw new RangeError(`SVG source must not exceed ${String(maximumSvgElements)} elements.`);
+          }
+
+          const elementName = node.name.toLowerCase().split(':').at(-1);
+
+          if (staticSvgForbiddenElements.has(elementName)) {
+            throw new TypeError('SVG source must be static and self-contained.');
+          }
+
+          for (const [name, value] of Object.entries(node.attributes)) {
+            const attributeName = name.toLowerCase().split(':').at(-1);
+
+            if (attributeName === 'base' || attributeName.startsWith('on')) {
+              throw new TypeError('SVG source must be static and self-contained.');
+            }
+
+            if (attributeName === 'href' && !value.trim().startsWith('#')) {
+              throw new TypeError('SVG source references a resource outside the document.');
+            }
+
+            assertStaticSvgValue(value);
+          }
+
+          if (elementName === 'style') {
+            for (const child of node.children) {
+              if (child.type === 'text' || child.type === 'cdata') {
+                assertStaticSvgValue(child.value);
+              }
+            }
+          }
+        },
+      },
+    };
+  },
+});
+
+async function assertOpaqueBackground(background) {
+  let pixel;
+
+  try {
+    pixel = await sharp({
+      create: {
+        background,
+        channels: 4,
+        height: 1,
+        width: 1,
+      },
+    })
+      .raw()
+      .toBuffer();
+  } catch (error) {
+    throw new TypeError('Background must be a valid opaque Sharp color.', { cause: error });
   }
 
-  const extension = extname(source).toLowerCase();
-
-  if (!supportedExtensions.has(extension)) {
-    throw new TypeError('Source must be an SVG, PNG, JPEG, or JPG file.');
+  if (pixel[3] !== 255) {
+    throw new TypeError('Background must be opaque for installable application icons.');
   }
-
-  return extension;
 }
 
 function contentSize(size, style) {
@@ -78,32 +177,52 @@ function maskableContentSize(size, style) {
     return size;
   }
 
-  // A 9/16 square fits inside the maskable safe-zone circle with radius 2/5.
-  return Math.floor((size * 9) / 16);
+  return Math.floor(size * maskableSafeZoneSquareRatio);
 }
 
-async function createIco(command, workDirectory, output) {
-  const inputs = [16, 32, 48].map((size) => join(workDirectory, `favicon-${String(size)}x${String(size)}.png`));
+async function writeIco(workDirectory, output) {
+  const images = await Promise.all(
+    [16, 32, 48].map(async (size) => await readFile(join(workDirectory, `favicon-${String(size)}x${String(size)}.png`))),
+  );
 
+  await writeFile(output, createIco(images), {
+    flag: 'wx',
+  });
+}
+
+async function moveIfPresent(source, target) {
   try {
-    await execute(command, [
-      '--create',
-      '--output',
-      output,
-      ...inputs,
-    ], {
-      timeout: 60_000,
-      windowsHide: true,
-    });
+    await rename(source, target);
+
+    return true;
   } catch (error) {
-    if (error !== null && typeof error === 'object' && error.code === 'ENOENT') {
-      throw new Error('icotool is required to generate favicon.ico.', {
-        cause: error,
-      });
+    if (error === null || typeof error !== 'object' || error.code !== 'ENOENT') {
+      throw error;
     }
 
-    throw error;
+    return false;
   }
+}
+
+async function restorePublishedFiles(operations) {
+  const failures = [];
+
+  for (const { backup, hadTarget, target } of operations.toReversed()) {
+    try {
+      await rm(target, {
+        force: true,
+        recursive: true,
+      });
+
+      if (hadTarget) {
+        await rename(backup, target);
+      }
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+
+  return failures;
 }
 
 async function publish(stageDirectory, outputDirectory, hasSvg) {
@@ -111,26 +230,40 @@ async function publish(stageDirectory, outputDirectory, hasSvg) {
     recursive: true,
   });
 
-  for (const name of outputNames) {
-    const target = join(outputDirectory, name);
+  const backupDirectory = join(dirname(stageDirectory), 'backup');
+  const operations = [];
 
-    if (name === 'favicon.svg' && !hasSvg) {
-      await unlink(target).catch((error) => {
-        if (error === null || typeof error !== 'object' || error.code !== 'ENOENT') {
-          throw error;
-        }
+  await mkdir(backupDirectory);
+
+  try {
+    for (const name of outputNames) {
+      const backup = join(backupDirectory, name);
+      const target = join(outputDirectory, name);
+      const hadTarget = await moveIfPresent(target, backup);
+
+      operations.push({
+        backup,
+        hadTarget,
+        target,
       });
 
-      continue;
+      if (name !== 'favicon.svg' || hasSvg) {
+        await rename(join(stageDirectory, name), target);
+      }
+    }
+  } catch (error) {
+    const rollbackFailures = await restorePublishedFiles(operations);
+
+    if (rollbackFailures.length > 0) {
+      throw new AggregateError([error, ...rollbackFailures], 'Unable to publish or restore the favicon bundle.');
     }
 
-    await rename(join(stageDirectory, name), target);
+    throw error;
   }
 }
 
 export async function generateIcons({
   background,
-  icotool = 'icotool',
   outputDirectory,
   source,
   style,
@@ -140,11 +273,7 @@ export async function generateIcons({
   }
 
   if (typeof background !== 'string' || background === '') {
-    throw new TypeError('Background must be a non-empty Sharp color or "transparent".');
-  }
-
-  if (typeof icotool !== 'string' || icotool === '') {
-    throw new TypeError('icotool must be a non-empty command or executable path.');
+    throw new TypeError('Background must be a non-empty opaque Sharp color.');
   }
 
   if (typeof source !== 'string' || source === '' || typeof outputDirectory !== 'string' || outputDirectory === '') {
@@ -153,8 +282,10 @@ export async function generateIcons({
 
   const sourcePath = resolve(source);
   const outputPath = resolve(outputDirectory);
-  const extension = await assertSource(sourcePath);
+  const extension = await imageSourceExtension(sourcePath);
   const outputParent = dirname(outputPath);
+
+  await assertOpaqueBackground(background);
 
   await mkdir(outputParent, {
     recursive: true,
@@ -169,13 +300,26 @@ export async function generateIcons({
     let renderSource = sourcePath;
 
     if (extension === '.svg') {
-      const optimized = optimize(await readFile(sourcePath, 'utf8'), {
+      const svg = await readFile(sourcePath, 'utf8');
+
+      const optimized = optimize(svg, {
         multipass: true,
         path: sourcePath,
+        plugins: [
+          assertStaticSvgPlugin,
+          {
+            name: 'preset-default',
+            params: {
+              overrides: {
+                cleanupIds: false,
+              },
+            },
+          },
+        ],
       });
 
       renderSource = join(stageDirectory, 'favicon.svg');
-      await writeFile(renderSource, optimized.data, {
+      await writeFile(renderSource, Buffer.byteLength(optimized.data) < Buffer.byteLength(svg) ? optimized.data : svg, {
         encoding: 'utf8',
         flag: 'wx',
       });
@@ -191,7 +335,7 @@ export async function generateIcons({
       });
     }
 
-    await createIco(icotool, workDirectory, join(stageDirectory, 'favicon.ico'));
+    await writeIco(workDirectory, join(stageDirectory, 'favicon.ico'));
     await renderIcon({
       background: 'transparent',
       canvasSize: 96,

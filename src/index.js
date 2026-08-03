@@ -11,4 +11,5 @@
  */
 
 export { generateIcons } from './generate-icons.js';
+export { createIco } from './ico.js';
 export { renderIcon } from './render-icon.js';

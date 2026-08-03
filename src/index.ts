@@ -10,11 +10,12 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
+import type { Buffer } from 'node:buffer';
+
 export type FaviconStyle = 'fullbleed' | 'symbol';
 
 export interface GenerateIconsOptions {
   readonly background: string;
-  readonly icotool?: string;
   readonly outputDirectory: string;
   readonly source: string;
   readonly style: FaviconStyle;
@@ -29,5 +30,7 @@ export interface RenderIconOptions {
 }
 
 export declare function generateIcons(options: GenerateIconsOptions): Promise<void>;
+
+export declare function createIco(images: readonly Buffer[]): Buffer;
 
 export declare function renderIcon(options: RenderIconOptions): Promise<void>;
