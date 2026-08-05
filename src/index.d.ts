@@ -10,6 +10,8 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
+/// <reference types="node" />
+
 import type { Buffer } from 'node:buffer';
 
 export type FaviconStyle = 'fullbleed' | 'symbol';

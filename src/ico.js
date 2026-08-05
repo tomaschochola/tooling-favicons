@@ -1,3 +1,17 @@
+/**
+ * @file
+ * @author Tomáš Chochola <tomaschochola@tomaschochola.cz>
+ * @copyright © 2026 Tomáš Chochola <tomaschochola@tomaschochola.cz>
+ *
+ * @license CC-BY-ND-4.0
+ *
+ * @see {@link https://creativecommons.org/licenses/by-nd/4.0/} License
+ * @see {@link https://github.com/tomaschochola} GitHub Profile
+ * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
+ */
+
+import { Buffer } from 'node:buffer';
+
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const maximumIcoBytes = 67_108_864;
 const maximumIcoImages = 256;

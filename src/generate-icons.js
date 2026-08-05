@@ -10,6 +10,7 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
+import { Buffer } from 'node:buffer';
 import {
   mkdir,
   mkdtemp,

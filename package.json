@@ -5,8 +5,8 @@
     "url": "https://github.com/tomaschochola"
   },
   "bin": {
-    "generate-icons": "./src/generate-icons-cli.js",
-    "render-icon": "./src/render-icon-cli.js"
+    "generate-icons": "src/generate-icons-cli.js",
+    "render-icon": "src/render-icon-cli.js"
   },
   "bugs": {
     "email": "tomaschochola@tomaschochola.cz",
@@ -20,23 +20,24 @@
     }
   ],
   "dependencies": {
+    "@types/node": "^24.13.3",
     "sharp": "^0.35.3",
     "svgo": "^4.0.2"
   },
-  "description": "@tomaschochola/tooling-favicons",
+  "description": "Favicon and application icon generation tooling for validated SVG and raster sources.",
   "devDependencies": {
-    "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#1.x",
-    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x",
+    "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#2.x",
+    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#2.x",
     "@tomaschochola/tooling-trimmer": "github:tomaschochola/tooling-trimmer#2.x",
-    "@tomaschochola/tooling-typescript": "github:tomaschochola/tooling-typescript#1.x"
+    "@tomaschochola/tooling-typescript": "github:tomaschochola/tooling-typescript#2.x"
   },
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./src/index.d.ts",
       "default": "./src/index.js"
     },
     "./cli": {
-      "types": "./src/cli.ts",
+      "types": "./src/cli.d.ts",
       "default": "./src/cli.js"
     }
   },
@@ -58,12 +59,12 @@
   "license": "CC-BY-ND-4.0",
   "main": "./src/index.js",
   "name": "@tomaschochola/tooling-favicons",
-  "repository": "github:tomaschochola/tooling-favicons",
-  "sideEffects": [
-    "./src/generate-icons-cli.js",
-    "./src/render-icon-cli.js"
-  ],
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomaschochola/tooling-favicons.git"
+  },
   "type": "module",
-  "types": "./src/index.ts",
+  "types": "./src/index.d.ts",
   "version": "2.0.0"
 }
