@@ -13,14 +13,7 @@
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { execFile } from 'node:child_process';
-import {
-  mkdtemp,
-  readFile,
-  readdir,
-  rm,
-  symlink,
-  writeFile,
-} from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -90,23 +83,17 @@ async function createAnimatedGif() {
 }
 
 test('exposes concise icon generator usage', async () => {
-  await assert.rejects(
-    async () => await execute(generateIconsCli),
-    {
-      code: 2,
-      stderr: /Usage: generate-icons SOURCE OUTPUT_DIRECTORY STYLE BACKGROUND/u,
-    },
-  );
+  await assert.rejects(async () => await execute(generateIconsCli), {
+    code: 2,
+    stderr: /Usage: generate-icons SOURCE OUTPUT_DIRECTORY STYLE BACKGROUND/u,
+  });
 });
 
 test('exposes concise icon renderer usage', async () => {
-  await assert.rejects(
-    async () => await execute(renderIcon),
-    {
-      code: 2,
-      stderr: /Usage: render-icon SOURCE OUTPUT CANVAS_SIZE CONTENT_SIZE BACKGROUND/u,
-    },
-  );
+  await assert.rejects(async () => await execute(renderIcon), {
+    code: 2,
+    stderr: /Usage: render-icon SOURCE OUTPUT CANVAS_SIZE CONTENT_SIZE BACKGROUND/u,
+  });
 });
 
 test('renders a centered raster icon at the requested size', async (context) => {
@@ -197,13 +184,14 @@ test('rejects animated raster input instead of rendering only the first frame', 
   await writeFile(source, await createAnimatedGif());
 
   await assert.rejects(
-    async () => await renderIconFile({
-      background: 'transparent',
-      canvasSize: 64,
-      contentSize: 64,
-      output: join(directory, 'output.png'),
-      source,
-    }),
+    async () =>
+      await renderIconFile({
+        background: 'transparent',
+        canvasSize: 64,
+        contentSize: 64,
+        output: join(directory, 'output.png'),
+        source,
+      }),
     /Animated and multi-page image sources are not supported/u,
   );
 });
@@ -238,20 +226,17 @@ test('generates the complete icon set through the Node API', async (context) => 
     style: 'symbol',
   });
 
-  assert.deepEqual(
-    (await readdir(outputDirectory)).sort(),
-    [
-      'apple-touch-icon.png',
-      'favicon-96x96.png',
-      'favicon.ico',
-      'icon-1024x1024.png',
-      'icon-192x192.png',
-      'icon-512x512.png',
-      'maskable-icon-1024x1024.png',
-      'maskable-icon-192x192.png',
-      'maskable-icon-512x512.png',
-    ],
-  );
+  assert.deepEqual((await readdir(outputDirectory)).sort(), [
+    'apple-touch-icon.png',
+    'favicon-96x96.png',
+    'favicon.ico',
+    'icon-1024x1024.png',
+    'icon-192x192.png',
+    'icon-512x512.png',
+    'maskable-icon-1024x1024.png',
+    'maskable-icon-192x192.png',
+    'maskable-icon-512x512.png',
+  ]);
 
   const metadata = await sharp(join(outputDirectory, 'maskable-icon-512x512.png')).metadata();
   const statistics = await sharp(join(outputDirectory, 'maskable-icon-512x512.png')).stats();
@@ -324,9 +309,7 @@ test('replaces the managed bundle without deleting unrelated output files', asyn
 
   const rasterSource = join(directory, 'source.png');
 
-  await sharp(source)
-    .png()
-    .toFile(rasterSource);
+  await sharp(source).png().toFile(rasterSource);
   await writeFile(join(outputDirectory, 'favicon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
   await generateIcons({
     background: '#ffffff',
@@ -336,27 +319,27 @@ test('replaces the managed bundle without deleting unrelated output files', asyn
   });
 
   assert.equal(await readFile(join(outputDirectory, 'unrelated.txt'), 'utf8'), 'preserve');
-  await assert.rejects(
-    async () => await readFile(join(outputDirectory, 'favicon.svg')),
-    {
-      code: 'ENOENT',
-    },
-  );
+  await assert.rejects(async () => await readFile(join(outputDirectory, 'favicon.svg')), {
+    code: 'ENOENT',
+  });
   assert.equal((await sharp(join(outputDirectory, 'icon-512x512.png')).metadata()).width, 512);
 });
 
 test('packs PNG streams into ICO without changing their bytes', async () => {
   const images = await Promise.all(
-    [16, 32, 48].map(async (size) => await sharp({
-      create: {
-        background: '#1e88e5',
-        channels: 4,
-        height: size,
-        width: size,
-      },
-    })
-      .png()
-      .toBuffer()),
+    [16, 32, 48].map(
+      async (size) =>
+        await sharp({
+          create: {
+            background: '#1e88e5',
+            channels: 4,
+            height: size,
+            width: size,
+          },
+        })
+          .png()
+          .toBuffer(),
+    ),
   );
 
   const ico = createIco(images);
@@ -366,7 +349,7 @@ test('packs PNG streams into ICO without changing their bytes', async () => {
   assert.equal(ico.readUInt16LE(4), images.length);
 
   for (const [index, image] of images.entries()) {
-    const entryOffset = 6 + (index * 16);
+    const entryOffset = 6 + index * 16;
     const imageLength = ico.readUInt32LE(entryOffset + 8);
     const imageOffset = ico.readUInt32LE(entryOffset + 12);
 
@@ -415,10 +398,7 @@ test('rejects a PNG with corrupted chunk data when packing ICO', async () => {
 
   corrupted[imageDataOffset] ^= 1;
 
-  assert.throws(
-    () => createIco([corrupted]),
-    /invalid checksum/u,
-  );
+  assert.throws(() => createIco([corrupted]), /invalid checksum/u);
 });
 
 test('rejects structurally invalid PNG streams when packing ICO', async () => {
@@ -435,32 +415,15 @@ test('rejects structurally invalid PNG streams when packing ICO', async () => {
 
   const firstChunkEnd = 8 + 12 + image.readUInt32BE(8);
 
-  const duplicateHeader = Buffer.concat([
-    image.subarray(0, firstChunkEnd),
-    image.subarray(8, firstChunkEnd),
-    image.subarray(firstChunkEnd),
-  ]);
+  const duplicateHeader = Buffer.concat([image.subarray(0, firstChunkEnd), image.subarray(8, firstChunkEnd), image.subarray(firstChunkEnd)]);
 
   const imageDataOffset = image.indexOf(Buffer.from('IDAT')) - 4;
 
-  const unknownCriticalChunk = Buffer.concat([
-    image.subarray(0, imageDataOffset),
-    pngChunk('ABCD'),
-    image.subarray(imageDataOffset),
-  ]);
+  const unknownCriticalChunk = Buffer.concat([image.subarray(0, imageDataOffset), pngChunk('ABCD'), image.subarray(imageDataOffset)]);
 
-  assert.throws(
-    () => createIco([withPngHeaderByte(image, 9, 1)]),
-    /invalid PNG bit depth or color type/u,
-  );
-  assert.throws(
-    () => createIco([duplicateHeader]),
-    /multiple PNG IHDR chunks/u,
-  );
-  assert.throws(
-    () => createIco([unknownCriticalChunk]),
-    /unsupported critical PNG chunk: ABCD/u,
-  );
+  assert.throws(() => createIco([withPngHeaderByte(image, 9, 1)]), /invalid PNG bit depth or color type/u);
+  assert.throws(() => createIco([duplicateHeader]), /multiple PNG IHDR chunks/u);
+  assert.throws(() => createIco([unknownCriticalChunk]), /unsupported critical PNG chunk: ABCD/u);
 });
 
 test('requires unique square PNG dimensions when packing ICO', async () => {
@@ -475,14 +438,8 @@ test('requires unique square PNG dimensions when packing ICO', async () => {
     .png()
     .toBuffer();
 
-  assert.throws(
-    () => createIco([withPngHeaderByte(image, 7, 15)]),
-    /dimensions must be square/u,
-  );
-  assert.throws(
-    () => createIco([image, image]),
-    /dimensions must be unique/u,
-  );
+  assert.throws(() => createIco([withPngHeaderByte(image, 7, 15)]), /dimensions must be square/u);
+  assert.throws(() => createIco([image, image]), /dimensions must be unique/u);
 });
 
 test('bounds the number of images accepted by the ICO packer', async () => {
@@ -497,10 +454,7 @@ test('bounds the number of images accepted by the ICO packer', async () => {
     .png()
     .toBuffer();
 
-  assert.throws(
-    () => createIco(Array(257).fill(image)),
-    /between 1 and 256 PNG images/u,
-  );
+  assert.throws(() => createIco(Array(257).fill(image)), /between 1 and 256 PNG images/u);
 });
 
 test('rejects active or externally referenced SVG input', async (context) => {
@@ -517,48 +471,52 @@ test('rejects active or externally referenced SVG input', async (context) => {
   await writeFile(source, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
   await assert.rejects(
-    async () => await generateIcons({
-      background: '#ffffff',
-      outputDirectory: join(directory, 'output'),
-      source,
-      style: 'symbol',
-    }),
+    async () =>
+      await generateIcons({
+        background: '#ffffff',
+        outputDirectory: join(directory, 'output'),
+        source,
+        style: 'symbol',
+      }),
     /SVG source must be static/u,
   );
 
   await writeFile(source, '<svg xmlns="http://www.w3.org/2000/svg"><use href="https://example.com/icon.svg#icon" /></svg>');
 
   await assert.rejects(
-    async () => await generateIcons({
-      background: '#ffffff',
-      outputDirectory: join(directory, 'output'),
-      source,
-      style: 'symbol',
-    }),
+    async () =>
+      await generateIcons({
+        background: '#ffffff',
+        outputDirectory: join(directory, 'output'),
+        source,
+        style: 'symbol',
+      }),
     /outside the document/u,
   );
 
   await writeFile(source, '<svg xmlns="http://www.w3.org/2000/svg" xml:base="https://example.com/"><use href="#icon" /></svg>');
 
   await assert.rejects(
-    async () => await generateIcons({
-      background: '#ffffff',
-      outputDirectory: join(directory, 'output'),
-      source,
-      style: 'symbol',
-    }),
+    async () =>
+      await generateIcons({
+        background: '#ffffff',
+        outputDirectory: join(directory, 'output'),
+        source,
+        style: 'symbol',
+      }),
     /static and self-contained/u,
   );
 
   await writeFile(source, '<svg xmlns="http://www.w3.org/2000/svg"><text x="0" y="16">A</text></svg>');
 
   await assert.rejects(
-    async () => await generateIcons({
-      background: '#ffffff',
-      outputDirectory: join(directory, 'output'),
-      source,
-      style: 'symbol',
-    }),
+    async () =>
+      await generateIcons({
+        background: '#ffffff',
+        outputDirectory: join(directory, 'output'),
+        source,
+        style: 'symbol',
+      }),
     /static and self-contained/u,
   );
 });
@@ -610,12 +568,13 @@ test('rejects a transparent installable icon background', async (context) => {
     .toFile(source);
 
   await assert.rejects(
-    async () => await generateIcons({
-      background: 'transparent',
-      outputDirectory: join(directory, 'output'),
-      source,
-      style: 'symbol',
-    }),
+    async () =>
+      await generateIcons({
+        background: 'transparent',
+        outputDirectory: join(directory, 'output'),
+        source,
+        style: 'symbol',
+      }),
     /must be opaque/u,
   );
 });

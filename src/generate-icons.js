@@ -11,19 +11,8 @@
  */
 
 import { Buffer } from 'node:buffer';
-import {
-  mkdir,
-  mkdtemp,
-  readFile,
-  rename,
-  rm,
-  writeFile,
-} from 'node:fs/promises';
-import {
-  dirname,
-  join,
-  resolve,
-} from 'node:path';
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { optimize } from 'svgo';
 import { createIco } from './ico.js';
@@ -73,10 +62,7 @@ const outputNames = Object.freeze([
 function assertStaticSvgValue(value) {
   const withoutInternalReferences = value.replace(staticSvgInternalCssUrlPattern, '');
 
-  if (
-    staticSvgCssControlPattern.test(value)
-    || staticSvgCssUrlPattern.test(withoutInternalReferences)
-  ) {
+  if (staticSvgCssControlPattern.test(value) || staticSvgCssUrlPattern.test(withoutInternalReferences)) {
     throw new TypeError('SVG source must be static and self-contained.');
   }
 }
@@ -170,7 +156,7 @@ function contentSize(size, style) {
 
   const padding = Math.floor((size + 5) / 10);
 
-  return size - (2 * padding);
+  return size - 2 * padding;
 }
 
 function maskableContentSize(size, style) {
@@ -182,9 +168,7 @@ function maskableContentSize(size, style) {
 }
 
 async function writeIco(workDirectory, output) {
-  const images = await Promise.all(
-    [16, 32, 48].map(async (size) => await readFile(join(workDirectory, `favicon-${String(size)}x${String(size)}.png`))),
-  );
+  const images = await Promise.all([16, 32, 48].map(async (size) => await readFile(join(workDirectory, `favicon-${String(size)}x${String(size)}.png`))));
 
   await writeFile(output, createIco(images), {
     flag: 'wx',
@@ -256,19 +240,16 @@ async function publish(stageDirectory, outputDirectory, hasSvg) {
     const rollbackFailures = await restorePublishedFiles(operations);
 
     if (rollbackFailures.length > 0) {
-      throw new AggregateError([error, ...rollbackFailures], 'Unable to publish or restore the favicon bundle.');
+      throw new AggregateError(rollbackFailures, 'Unable to publish or restore the favicon bundle.', {
+        cause: error,
+      });
     }
 
     throw error;
   }
 }
 
-export async function generateIcons({
-  background,
-  outputDirectory,
-  source,
-  style,
-}) {
+export async function generateIcons({ background, outputDirectory, source, style }) {
   if (style !== 'fullbleed' && style !== 'symbol') {
     throw new TypeError('Style must be "symbol" or "fullbleed".');
   }

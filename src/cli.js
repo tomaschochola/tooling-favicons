@@ -14,11 +14,10 @@ import process from 'node:process';
 import { generateIcons } from './generate-icons.js';
 import { renderIcon } from './render-icon.js';
 
-class UsageError extends TypeError {
-}
+class UsageError extends TypeError {}
 
 function parseSize(value, name) {
-  if (!(/^[1-9]\d*$/u).test(value)) {
+  if (!/^[1-9]\d*$/u.test(value)) {
     throw new UsageError(`${name} must be a positive integer.`);
   }
 
@@ -35,13 +34,7 @@ export async function runGenerateIconsCli(argv = process.argv.slice(2)) {
   try {
     const [source, outputDirectory, style, background] = argv;
 
-    if (
-      source === undefined
-      || outputDirectory === undefined
-      || style === undefined
-      || background === undefined
-      || argv.length !== 4
-    ) {
+    if (source === undefined || outputDirectory === undefined || style === undefined || background === undefined || argv.length !== 4) {
       throw new UsageError('Usage: generate-icons SOURCE OUTPUT_DIRECTORY STYLE BACKGROUND');
     }
 
@@ -64,14 +57,7 @@ export async function runRenderIconCli(argv = process.argv.slice(2)) {
   try {
     const [source, output, canvasValue, contentValue, background] = argv;
 
-    if (
-      source === undefined
-      || output === undefined
-      || canvasValue === undefined
-      || contentValue === undefined
-      || background === undefined
-      || argv.length !== 5
-    ) {
+    if (source === undefined || output === undefined || canvasValue === undefined || contentValue === undefined || background === undefined || argv.length !== 5) {
       throw new UsageError('Usage: render-icon SOURCE OUTPUT CANVAS_SIZE CONTENT_SIZE BACKGROUND');
     }
 

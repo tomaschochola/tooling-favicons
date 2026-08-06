@@ -121,11 +121,7 @@ function dimensionsFromHeader(input, chunk) {
 }
 
 function assertIcoDimensions(dimensions) {
-  if (
-    dimensions.width !== dimensions.height
-    || dimensions.width < 1
-    || dimensions.width > 256
-  ) {
+  if (dimensions.width !== dimensions.height || dimensions.width < 1 || dimensions.width > 256) {
     throw new RangeError('ICO PNG dimensions must be square and between 1 and 256 pixels.');
   }
 }
@@ -133,14 +129,16 @@ function assertIcoDimensions(dimensions) {
 function invalidPalette(chunk, properties, state) {
   const paletteEntries = chunk.length / 3;
 
-  return state.seenPalette
-    || state.seenImageData
-    || chunk.length === 0
-    || chunk.length % 3 !== 0
-    || paletteEntries > 256
-    || (properties.colorType === 3 && paletteEntries > (2 ** properties.bitDepth))
-    || properties.colorType === 0
-    || properties.colorType === 4;
+  return (
+    state.seenPalette ||
+    state.seenImageData ||
+    chunk.length === 0 ||
+    chunk.length % 3 !== 0 ||
+    paletteEntries > 256 ||
+    (properties.colorType === 3 && paletteEntries > 2 ** properties.bitDepth) ||
+    properties.colorType === 0 ||
+    properties.colorType === 4
+  );
 }
 
 function inspectPngChunk(chunk, properties, state, inputLength) {
@@ -221,7 +219,7 @@ export function createIco(images) {
     throw new RangeError(`ICO must contain between 1 and ${String(maximumIcoImages)} PNG images.`);
   }
 
-  const directorySize = 6 + (images.length * 16);
+  const directorySize = 6 + images.length * 16;
 
   let totalSize = directorySize;
 
@@ -254,7 +252,7 @@ export function createIco(images) {
   let imageOffset = directorySize;
 
   for (const [index, { data, height, width }] of entries.entries()) {
-    const entryOffset = 6 + (index * 16);
+    const entryOffset = 6 + index * 16;
 
     directory.writeUInt8(width === 256 ? 0 : width, entryOffset);
     directory.writeUInt8(height === 256 ? 0 : height, entryOffset + 1);

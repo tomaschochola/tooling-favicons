@@ -39,13 +39,7 @@ async function sourceDensity(source, extension, contentSize) {
     throw new TypeError('Animated and multi-page image sources are not supported.');
   }
 
-  if (
-    !Number.isSafeInteger(metadata.width)
-    || !Number.isSafeInteger(metadata.height)
-    || metadata.width < 1
-    || metadata.height < 1
-    || metadata.width * metadata.height > maximumPixels
-  ) {
+  if (!Number.isSafeInteger(metadata.width) || !Number.isSafeInteger(metadata.height) || metadata.width < 1 || metadata.height < 1 || metadata.width * metadata.height > maximumPixels) {
     throw new RangeError(`Decoded image must contain between 1 and ${String(maximumPixels)} pixels.`);
   }
 
@@ -59,25 +53,11 @@ async function sourceDensity(source, extension, contentSize) {
     throw new TypeError('SVG source must have intrinsic dimensions or a viewBox.');
   }
 
-  return Math.min(
-    maximumSvgDensity,
-    Math.max(defaultSvgDensity, Math.ceil((defaultSvgDensity * contentSize) / largestDimension)),
-  );
+  return Math.min(maximumSvgDensity, Math.max(defaultSvgDensity, Math.ceil((defaultSvgDensity * contentSize) / largestDimension)));
 }
 
-export async function renderIcon({
-  background,
-  canvasSize,
-  contentSize,
-  output,
-  source,
-}) {
-  if (
-    !Number.isSafeInteger(canvasSize)
-    || canvasSize <= 0
-    || canvasSize > maximumDimension
-    || canvasSize * canvasSize > maximumPixels
-  ) {
+export async function renderIcon({ background, canvasSize, contentSize, output, source }) {
+  if (!Number.isSafeInteger(canvasSize) || canvasSize <= 0 || canvasSize > maximumDimension || canvasSize * canvasSize > maximumPixels) {
     throw new RangeError('Canvas size is invalid or exceeds the safety limit.');
   }
 
@@ -147,9 +127,7 @@ export async function renderIcon({
     const metadata = await sharp(temporaryOutput).metadata();
 
     if (metadata.format !== 'png' || metadata.width !== canvasSize || metadata.height !== canvasSize) {
-      throw new Error(
-        `Unexpected rendered icon: ${String(metadata.width)}x${String(metadata.height)} ${String(metadata.format)}`,
-      );
+      throw new Error(`Unexpected rendered icon: ${String(metadata.width)}x${String(metadata.height)} ${String(metadata.format)}`);
     }
 
     await rename(temporaryOutput, outputPath);
