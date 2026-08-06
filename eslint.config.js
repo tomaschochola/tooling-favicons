@@ -19,21 +19,8 @@ export default new ESLintConfigBuilder()
   .addNodeGlobals()
   .addGitIgnoreFile(import.meta.url)
   .addJavaScriptRecommendedRules()
-  .addJavaScriptPolicyRules()
   .addTypeScriptStrictTypeCheckedRules({ files: typescriptFiles })
-  .addTypeScriptStylisticTypeCheckedRules({ files: typescriptFiles })
   .enableTypeScriptProjectService({ files: typescriptFiles })
-  .addTypeScriptPolicyRules({ files: typescriptFiles })
-  .addRawConfig({
-    files: [...filePatterns.allConfigScriptFiles, ...filePatterns.allTypeScriptDeclarationFiles],
-    rules: {
-      'no-restricted-exports': 'off',
-    },
-  })
   .disableTypeScriptTypeChecking({ files: javascriptFiles })
-  .addStylisticCustomizedRules()
-  .addStylisticPolicyRules()
-  .disableStylisticLegacyRules()
   .addSonarJsRecommendedRules()
-  .addSonarJsPolicyOverrides()
   .toConfig();
