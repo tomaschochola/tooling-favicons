@@ -5,8 +5,7 @@
     "url": "https://github.com/tomaschochola"
   },
   "bin": {
-    "generate-icons": "src/generate-icons-cli.js",
-    "render-icon": "src/render-icon-cli.js"
+    "tooling-favicons": "src/cli.js"
   },
   "bugs": {
     "email": "tomaschochola@tomaschochola.cz",
@@ -20,27 +19,16 @@
     }
   ],
   "dependencies": {
-    "@types/node": "^24.13.3",
     "sharp": "^0.35.3",
     "svgo": "^4.0.2"
   },
-  "description": "Favicon and application icon generation tooling for validated SVG and raster sources.",
+  "description": "Command-line favicon and application icon generation for validated SVG and raster sources.",
   "devDependencies": {
     "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#main",
     "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#main",
-    "@tomaschochola/tooling-trimmer": "github:tomaschochola/tooling-trimmer#main",
-    "@tomaschochola/tooling-typescript": "github:tomaschochola/tooling-typescript#main"
+    "@tomaschochola/tooling-trimmer": "github:tomaschochola/tooling-trimmer#main"
   },
-  "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
-    },
-    "./cli": {
-      "types": "./src/cli.d.ts",
-      "default": "./src/cli.js"
-    }
-  },
+  "exports": {},
   "files": [
     "src"
   ],
@@ -57,7 +45,6 @@
     "tooling-favicons"
   ],
   "license": "CC-BY-ND-4.0",
-  "main": "./src/index.js",
   "name": "@tomaschochola/tooling-favicons",
   "private": true,
   "repository": {
@@ -65,6 +52,5 @@
     "url": "git+https://github.com/tomaschochola/tooling-favicons.git"
   },
   "type": "module",
-  "types": "./src/index.d.ts",
   "version": "0.0.0"
 }

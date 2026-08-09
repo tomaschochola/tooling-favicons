@@ -10,17 +10,11 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import { ESLintConfigBuilder, filePatterns } from '@tomaschochola/tooling-eslint';
-
-const typescriptFiles = filePatterns.allTypeScriptFiles;
-const javascriptFiles = filePatterns.allJavaScriptFiles;
+import { ESLintConfigBuilder } from '@tomaschochola/tooling-eslint';
 
 export default new ESLintConfigBuilder()
   .addNodeGlobals()
   .addGitIgnoreFile(import.meta.url)
   .addJavaScriptRecommendedRules()
-  .addTypeScriptStrictTypeCheckedRules({ files: typescriptFiles })
-  .enableTypeScriptProjectService({ files: typescriptFiles })
-  .disableTypeScriptTypeChecking({ files: javascriptFiles })
   .addSonarJsRecommendedRules()
   .toConfig();

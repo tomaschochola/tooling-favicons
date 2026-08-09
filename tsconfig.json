@@ -1,7 +1,0 @@
-{
-  "extends": "@tomaschochola/tooling-typescript/src/node.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "include": ["./src/**/*"]
-}
