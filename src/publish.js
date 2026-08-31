@@ -14,57 +14,57 @@ import { mkdir, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 async function moveIfPresent(source, target) {
-  try {
-    await rename(source, target);
+    try {
+        await rename(source, target);
 
-    return true;
-  } catch (error) {
-    if (error.code !== 'ENOENT') {
-      throw error;
+        return true;
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            throw error;
+        }
+
+        return false;
     }
-
-    return false;
-  }
 }
 
 export async function restore(operations) {
-  const failures = [];
+    const failures = [];
 
-  for (const { backup, hadTarget, target } of operations.toReversed()) {
-    try {
-      await rm(target, { force: true, recursive: true });
+    for (const { backup, hadTarget, target } of operations.toReversed()) {
+        try {
+            await rm(target, { force: true, recursive: true });
 
-      if (hadTarget) {
-        await rename(backup, target);
-      }
-    } catch (error) {
-      failures.push(error);
+            if (hadTarget) {
+                await rename(backup, target);
+            }
+        } catch (error) {
+            failures.push(error);
+        }
     }
-  }
 
-  return failures;
+    return failures;
 }
 
 export async function publishBundle({ managedNames, outputDirectory, stageDirectory, workDirectory }) {
-  await mkdir(outputDirectory, { recursive: true });
+    await mkdir(outputDirectory, { recursive: true });
 
-  const backupDirectory = join(workDirectory, 'backup');
-  const operations = [];
+    const backupDirectory = join(workDirectory, 'backup');
+    const operations = [];
 
-  await mkdir(backupDirectory);
+    await mkdir(backupDirectory);
 
-  try {
-    for (const name of managedNames) {
-      const backup = join(backupDirectory, name);
-      const target = join(outputDirectory, name);
-      const hadTarget = await moveIfPresent(target, backup);
+    try {
+        for (const name of managedNames) {
+            const backup = join(backupDirectory, name);
+            const target = join(outputDirectory, name);
+            const hadTarget = await moveIfPresent(target, backup);
 
-      operations.push({ backup, hadTarget, target });
-      await moveIfPresent(join(stageDirectory, name), target);
+            operations.push({ backup, hadTarget, target });
+            await moveIfPresent(join(stageDirectory, name), target);
+        }
+    } catch (error) {
+        const rollbackFailures = await restore(operations);
+
+        throw new AggregateError([error, ...rollbackFailures], `Unable to publish generated icon files: ${error.message}`, { cause: error });
     }
-  } catch (error) {
-    const rollbackFailures = await restore(operations);
-
-    throw new AggregateError([error, ...rollbackFailures], `Unable to publish generated icon files: ${error.message}`, { cause: error });
-  }
 }

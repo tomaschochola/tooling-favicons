@@ -63,212 +63,212 @@ Options:
 `;
 
 function requireString(value, name) {
-  if (value === undefined || value === '') {
-    throw new TypeError(`${name} is required.`);
-  }
+    if (value === undefined || value === '') {
+        throw new TypeError(`${name} is required.`);
+    }
 
-  return value;
+    return value;
 }
 
 function parseSize(value, name) {
-  if (!/^[1-9]\d*$/u.test(value)) {
-    throw new TypeError(`${name} must be a positive integer.`);
-  }
+    if (!/^[1-9]\d*$/u.test(value)) {
+        throw new TypeError(`${name} must be a positive integer.`);
+    }
 
-  const size = Number(value);
+    const size = Number(value);
 
-  if (!Number.isSafeInteger(size)) {
-    throw new RangeError(`${name} must be a positive safe integer.`);
-  }
+    if (!Number.isSafeInteger(size)) {
+        throw new RangeError(`${name} must be a positive safe integer.`);
+    }
 
-  return size;
+    return size;
 }
 
 function parseSizes(values, name) {
-  if (values === undefined) {
-    return undefined;
-  }
+    if (values === undefined) {
+        return undefined;
+    }
 
-  const sizes = values.map((value) => parseSize(value, name));
+    const sizes = values.map((value) => parseSize(value, name));
 
-  if (new Set(sizes).size !== sizes.length) {
-    throw new RangeError(`${name} must not be repeated with the same size.`);
-  }
+    if (new Set(sizes).size !== sizes.length) {
+        throw new RangeError(`${name} must not be repeated with the same size.`);
+    }
 
-  return sizes.toSorted((left, right) => left - right);
+    return sizes.toSorted((left, right) => left - right);
 }
 
 function parseCommand(arguments_, options) {
-  return parseArgs({
-    allowPositionals: true,
-    args: arguments_,
-    options: {
-      help: { short: 'h', type: 'boolean' },
-      ...options,
-    },
-    strict: true,
-  });
+    return parseArgs({
+        allowPositionals: true,
+        args: arguments_,
+        options: {
+            help: { short: 'h', type: 'boolean' },
+            ...options,
+        },
+        strict: true,
+    });
 }
 
 function assertPositionals(positionals, count) {
-  if (positionals.length !== count) {
-    throw new TypeError(`Expected ${String(count)} positional arguments, received ${String(positionals.length)}.`);
-  }
+    if (positionals.length !== count) {
+        throw new TypeError(`Expected ${String(count)} positional arguments, received ${String(positionals.length)}.`);
+    }
 
-  if (positionals.some((value) => value === '')) {
-    throw new TypeError('Positional arguments must not be empty.');
-  }
+    if (positionals.some((value) => value === '')) {
+        throw new TypeError('Positional arguments must not be empty.');
+    }
 }
 
 function parseWeb(arguments_) {
-  const { positionals, values } = parseCommand(arguments_, {
-    'apple-background': { type: 'string' },
-    'apple-source': { type: 'string' },
-  });
+    const { positionals, values } = parseCommand(arguments_, {
+        'apple-background': { type: 'string' },
+        'apple-source': { type: 'string' },
+    });
 
-  if (values.help) {
-    return { type: 'help' };
-  }
+    if (values.help) {
+        return { type: 'help' };
+    }
 
-  assertPositionals(positionals, 2);
+    assertPositionals(positionals, 2);
 
-  const options = {
-    appleBackground: requireString(values['apple-background'], '--apple-background'),
-    outputDirectory: positionals[1],
-    source: positionals[0],
-    type: 'web',
-  };
+    const options = {
+        appleBackground: requireString(values['apple-background'], '--apple-background'),
+        outputDirectory: positionals[1],
+        source: positionals[0],
+        type: 'web',
+    };
 
-  if (values['apple-source'] !== undefined) {
-    options.appleSource = requireString(values['apple-source'], '--apple-source');
-  }
+    if (values['apple-source'] !== undefined) {
+        options.appleSource = requireString(values['apple-source'], '--apple-source');
+    }
 
-  return options;
+    return options;
 }
 
 function parseMaskableFit(value) {
-  const fit = requireString(value, '--maskable-fit');
+    const fit = requireString(value, '--maskable-fit');
 
-  if (fit !== 'canvas' && fit !== 'safe') {
-    throw new TypeError('--maskable-fit must be "canvas" or "safe".');
-  }
+    if (fit !== 'canvas' && fit !== 'safe') {
+        throw new TypeError('--maskable-fit must be "canvas" or "safe".');
+    }
 
-  return fit;
+    return fit;
 }
 
 function parsePwa(arguments_) {
-  const { positionals, values } = parseCommand(arguments_, {
-    'maskable-background': { type: 'string' },
-    'maskable-fit': { type: 'string' },
-    'maskable-size': { multiple: true, type: 'string' },
-    'maskable-source': { type: 'string' },
-    size: { multiple: true, type: 'string' },
-  });
+    const { positionals, values } = parseCommand(arguments_, {
+        'maskable-background': { type: 'string' },
+        'maskable-fit': { type: 'string' },
+        'maskable-size': { multiple: true, type: 'string' },
+        'maskable-source': { type: 'string' },
+        size: { multiple: true, type: 'string' },
+    });
 
-  if (values.help) {
-    return { type: 'help' };
-  }
+    if (values.help) {
+        return { type: 'help' };
+    }
 
-  assertPositionals(positionals, 2);
+    assertPositionals(positionals, 2);
 
-  const options = {
-    maskableBackground: requireString(values['maskable-background'], '--maskable-background'),
-    maskableFit: parseMaskableFit(values['maskable-fit']),
-    outputDirectory: positionals[1],
-    source: positionals[0],
-    type: 'pwa',
-  };
-  const maskableSizes = parseSizes(values['maskable-size'], '--maskable-size');
-  const sizes = parseSizes(values.size, '--size');
+    const options = {
+        maskableBackground: requireString(values['maskable-background'], '--maskable-background'),
+        maskableFit: parseMaskableFit(values['maskable-fit']),
+        outputDirectory: positionals[1],
+        source: positionals[0],
+        type: 'pwa',
+    };
+    const maskableSizes = parseSizes(values['maskable-size'], '--maskable-size');
+    const sizes = parseSizes(values.size, '--size');
 
-  if (values['maskable-source'] !== undefined) {
-    options.maskableSource = requireString(values['maskable-source'], '--maskable-source');
-  }
+    if (values['maskable-source'] !== undefined) {
+        options.maskableSource = requireString(values['maskable-source'], '--maskable-source');
+    }
 
-  if (maskableSizes !== undefined) {
-    options.maskableSizes = maskableSizes;
-  }
+    if (maskableSizes !== undefined) {
+        options.maskableSizes = maskableSizes;
+    }
 
-  if (sizes !== undefined) {
-    options.sizes = sizes;
-  }
+    if (sizes !== undefined) {
+        options.sizes = sizes;
+    }
 
-  return options;
+    return options;
 }
 
 function parseIco(arguments_) {
-  const { positionals, values } = parseCommand(arguments_, {
-    background: { type: 'string' },
-    size: { multiple: true, type: 'string' },
-  });
+    const { positionals, values } = parseCommand(arguments_, {
+        background: { type: 'string' },
+        size: { multiple: true, type: 'string' },
+    });
 
-  if (values.help) {
-    return { type: 'help' };
-  }
+    if (values.help) {
+        return { type: 'help' };
+    }
 
-  assertPositionals(positionals, 2);
+    assertPositionals(positionals, 2);
 
-  const options = {
-    background: requireString(values.background, '--background'),
-    output: positionals[1],
-    source: positionals[0],
-    type: 'ico',
-  };
-  const sizes = parseSizes(values.size, '--size');
+    const options = {
+        background: requireString(values.background, '--background'),
+        output: positionals[1],
+        source: positionals[0],
+        type: 'ico',
+    };
+    const sizes = parseSizes(values.size, '--size');
 
-  if (sizes !== undefined) {
-    options.sizes = sizes;
-  }
+    if (sizes !== undefined) {
+        options.sizes = sizes;
+    }
 
-  return options;
+    return options;
 }
 
 function parsePng(arguments_) {
-  const { positionals, values } = parseCommand(arguments_, {
-    'artwork-size': { type: 'string' },
-    background: { type: 'string' },
-    'canvas-size': { type: 'string' },
-  });
+    const { positionals, values } = parseCommand(arguments_, {
+        'artwork-size': { type: 'string' },
+        background: { type: 'string' },
+        'canvas-size': { type: 'string' },
+    });
 
-  if (values.help) {
-    return { type: 'help' };
-  }
+    if (values.help) {
+        return { type: 'help' };
+    }
 
-  assertPositionals(positionals, 2);
+    assertPositionals(positionals, 2);
 
-  return {
-    artworkSize: parseSize(requireString(values['artwork-size'], '--artwork-size'), '--artwork-size'),
-    background: requireString(values.background, '--background'),
-    canvasSize: parseSize(requireString(values['canvas-size'], '--canvas-size'), '--canvas-size'),
-    output: positionals[1],
-    source: positionals[0],
-    type: 'png',
-  };
+    return {
+        artworkSize: parseSize(requireString(values['artwork-size'], '--artwork-size'), '--artwork-size'),
+        background: requireString(values.background, '--background'),
+        canvasSize: parseSize(requireString(values['canvas-size'], '--canvas-size'), '--canvas-size'),
+        output: positionals[1],
+        source: positionals[0],
+        type: 'png',
+    };
 }
 
 const commandParsers = Object.freeze({
-  ico: parseIco,
-  png: parsePng,
-  pwa: parsePwa,
-  web: parseWeb,
+    ico: parseIco,
+    png: parsePng,
+    pwa: parsePwa,
+    web: parseWeb,
 });
 
 export function parseArguments(arguments_) {
-  const [command, ...commandArguments] = arguments_;
+    const [command, ...commandArguments] = arguments_;
 
-  if (command === '--help' || command === '-h') {
-    return { type: 'help' };
-  }
+    if (command === '--help' || command === '-h') {
+        return { type: 'help' };
+    }
 
-  if (command === undefined) {
-    throw new TypeError('Expected a command. Run with --help for usage.');
-  }
+    if (command === undefined) {
+        throw new TypeError('Expected a command. Run with --help for usage.');
+    }
 
-  const parse = commandParsers[command];
+    const parse = commandParsers[command];
 
-  if (parse === undefined) {
-    throw new TypeError(`Unknown command: ${command}.`);
-  }
+    if (parse === undefined) {
+        throw new TypeError(`Unknown command: ${command}.`);
+    }
 
-  return parse(commandArguments);
+    return parse(commandArguments);
 }

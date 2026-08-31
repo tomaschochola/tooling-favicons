@@ -18,37 +18,37 @@ import { imageSourceExtension } from '../src/source.js';
 import { temporaryDirectory } from './helpers.js';
 
 test('accepts every supported image extension case-insensitively', async (context) => {
-  const directory = await temporaryDirectory(context);
+    const directory = await temporaryDirectory(context);
 
-  for (const [name, extension] of [
-    ['image.SVG', '.svg'],
-    ['image.PNG', '.png'],
-    ['image.JPEG', '.jpeg'],
-    ['image.JPG', '.jpg'],
-  ]) {
-    const path = join(directory, name);
+    for (const [name, extension] of [
+        ['image.SVG', '.svg'],
+        ['image.PNG', '.png'],
+        ['image.JPEG', '.jpeg'],
+        ['image.JPG', '.jpg'],
+    ]) {
+        const path = join(directory, name);
 
-    await writeFile(path, 'x');
-    assert.equal(await imageSourceExtension(path), extension);
-  }
+        await writeFile(path, 'x');
+        assert.equal(await imageSourceExtension(path), extension);
+    }
 });
 
 test('rejects missing, non-file, oversized, and unsupported sources', async (context) => {
-  const directory = await temporaryDirectory(context);
-  const folder = join(directory, 'folder.svg');
-  const oversized = join(directory, 'oversized.png');
-  const unsupported = join(directory, 'image.gif');
+    const directory = await temporaryDirectory(context);
+    const folder = join(directory, 'folder.svg');
+    const oversized = join(directory, 'oversized.png');
+    const unsupported = join(directory, 'image.gif');
 
-  await mkdir(folder);
-  await writeFile(unsupported, 'x');
+    await mkdir(folder);
+    await writeFile(unsupported, 'x');
 
-  const file = await open(oversized, 'w');
+    const file = await open(oversized, 'w');
 
-  await file.truncate(16_777_217);
-  await file.close();
+    await file.truncate(16_777_217);
+    await file.close();
 
-  await assert.rejects(async () => await imageSourceExtension(join(directory, 'missing.svg')), { code: 'ENOENT' });
-  await assert.rejects(async () => await imageSourceExtension(folder), /must be a file/u);
-  await assert.rejects(async () => await imageSourceExtension(oversized), /must not exceed/u);
-  await assert.rejects(async () => await imageSourceExtension(unsupported), /must be an SVG, PNG, JPEG, or JPG/u);
+    await assert.rejects(async () => await imageSourceExtension(join(directory, 'missing.svg')), { code: 'ENOENT' });
+    await assert.rejects(async () => await imageSourceExtension(folder), /must be a file/u);
+    await assert.rejects(async () => await imageSourceExtension(oversized), /must not exceed/u);
+    await assert.rejects(async () => await imageSourceExtension(unsupported), /must be an SVG, PNG, JPEG, or JPG/u);
 });
