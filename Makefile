@@ -117,7 +117,7 @@ prettier_check: ./node_modules/.package-lock.json ./package.json ./package-lock.
 
 .PHONY: node_test
 node_test: ./node_modules/.package-lock.json ./package.json ./package-lock.json
-	node --test --experimental-test-coverage --test-coverage-branches=100 --test-coverage-functions=100 --test-coverage-include='src/**/*.js' --test-coverage-lines=100
+	node --test --experimental-test-coverage --test-coverage-include='src/**/*.js' --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100
 
 .PHONY: npm_config_check
 npm_config_check: ./.npmrc
@@ -141,7 +141,7 @@ npm_check: npm_config_check ./node_modules/.package-lock.json
 
 .PHONY: npm_audit
 npm_audit: npm_config_check ./node_modules/.package-lock.json ./package.json ./package-lock.json
-	npm audit --ignore-scripts --audit-level=high --install-links --include=prod --include=dev --include=peer --include=optional
+	npm audit --ignore-scripts --audit-level=moderate --install-links --include=prod --include=dev --include=peer --include=optional
 
 .PHONY: npm_install
 npm_install: npm_config_check ./package.json ./package-lock.json
@@ -153,7 +153,7 @@ npm_update: npm_config_check ./package.json ./package-lock.json npm_clean
 
 .PHONY: npm_clean
 npm_clean:
-	rm -rf ./node_modules
+	rm --force --recursive --one-file-system -- ./node_modules
 
 .PHONY: git_check
 git_check:
