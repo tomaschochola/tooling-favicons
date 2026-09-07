@@ -17,6 +17,7 @@
     "postCreateCommand": ["make", "postcreate"],
     "remoteUser": "node",
     "updateRemoteUserUID": true,
+    "userEnvProbe": "none",
     "waitFor": "postCreateCommand",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
 }
