@@ -56,6 +56,9 @@ test('rejects document control, active content, and external resources', async (
         ['<svg xmlns="http://www.w3.org/2000/svg"><style>@import "a.css"</style></svg>', /static and self-contained/u],
         ['<svg xmlns="http://www.w3.org/2000/svg"><style><![CDATA[@keyframes a{}]]></style></svg>', /static and self-contained/u],
         ['<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:url(data:image/png;base64,x)" /></svg>', /static and self-contained/u],
+        ['<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:u\\72l(https://example.com/a.svg)" /></svg>', /CSS escape/u],
+        ['<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:\\75rl(https://example.com/a.svg)" /></svg>', /CSS escape/u],
+        ['<svg xmlns="http://www.w3.org/2000/svg"><style>@\\69mport "https://example.com/a.css"</style></svg>', /CSS escape/u],
     ];
 
     for (const [svg, message] of cases) {

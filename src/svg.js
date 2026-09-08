@@ -41,6 +41,10 @@ const staticSvgForbiddenElements = new Set([
 ]);
 
 function assertStaticSvgValue(value) {
+    if (value.includes('\\')) {
+        throw new TypeError('SVG source must not contain CSS escape sequences.');
+    }
+
     const withoutInternalReferences = value.replace(staticSvgInternalCssUrlPattern, '');
 
     if (staticSvgCssControlPattern.test(value) || staticSvgCssUrlPattern.test(withoutInternalReferences)) {

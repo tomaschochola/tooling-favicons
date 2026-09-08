@@ -13,7 +13,7 @@
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { createIco } from './ico.js';
-import { publishBundle } from './publish.js';
+import { PublishBundleError, publishBundle } from './publish.js';
 import { assertColor, assertSquareSource, renderPng } from './render.js';
 import { imageSourceExtension } from './source.js';
 import { writeOptimizedSvg } from './svg.js';
@@ -26,16 +26,26 @@ const maximumRasterSize = 10_000;
 const pwaNamePattern = /^(?:icon|maskable-icon)-([1-9]\d*)x\1\.png$/u;
 const webNames = Object.freeze(['apple-touch-icon.png', 'favicon-96x96.png', 'favicon.ico', 'favicon.svg']);
 
-async function workDirectory(parent, operation) {
+export async function workDirectory(parent, operation) {
     await mkdir(parent, { recursive: true });
 
     const directory = await mkdtemp(join(parent, '.tooling-favicons-'));
+    let preserveDirectory = false;
+    let result;
 
     try {
-        return await operation(directory);
+        result = await operation(directory);
+    } catch (error) {
+        preserveDirectory = error instanceof PublishBundleError && error.recoveryRequired;
+
+        throw error;
     } finally {
-        await rm(directory, { force: true, recursive: true });
+        if (!preserveDirectory) {
+            await rm(directory, { force: true, recursive: true });
+        }
     }
+
+    return result;
 }
 
 async function preparedSource(source, directory, name) {
@@ -81,6 +91,20 @@ function assertSizes(sizes, maximum = maximumRasterSize) {
     if (unique.size !== sizes.length || sizes.some((size) => !Number.isSafeInteger(size) || size < 1 || size > maximum)) {
         throw new RangeError(`Sizes must be unique positive integers no greater than ${String(maximum)}.`);
     }
+}
+
+function safeMaskableArtworkSize(canvasSize) {
+    let artworkSize = Math.floor((canvasSize * 0.8) / Math.SQRT2);
+
+    if ((canvasSize - artworkSize) % 2 !== 0) {
+        artworkSize -= 1;
+    }
+
+    if (artworkSize < 1) {
+        throw new RangeError(`Maskable safe fit is not representable at size ${String(canvasSize)}.`);
+    }
+
+    return artworkSize;
 }
 
 async function existingPwaNames(outputDirectory) {
@@ -181,7 +205,7 @@ export async function generatePwa({ maskableBackground, maskableFit, maskableSiz
 
         for (const size of maskableSizes) {
             const name = `maskable-icon-${String(size)}x${String(size)}.png`;
-            const artworkSize = maskableFit === 'safe' ? Math.max(1, Math.floor((size * 0.8) / Math.SQRT2)) : size;
+            const artworkSize = maskableFit === 'safe' ? safeMaskableArtworkSize(size) : size;
 
             generatedNames.push(name);
             await renderPng({

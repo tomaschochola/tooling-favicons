@@ -15,7 +15,8 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import test from 'node:test';
 import sharp from 'sharp';
-import { generateIco, generatePng, generatePwa, generateWeb } from '../src/generate.js';
+import { generateIco, generatePng, generatePwa, generateWeb, workDirectory } from '../src/generate.js';
+import { PublishBundleError } from '../src/publish.js';
 import { colorBounds, temporaryDirectory, writePng, writeSvg } from './helpers.js';
 
 test('generates the complete web set and supports dedicated Apple artwork', async (context) => {
@@ -91,11 +92,40 @@ test('generates transparent ordinary and opaque maskable PWA sets with exact fit
     assert.deepEqual(colorBounds(safePixels, 512, [0, 0, 255]), {
         maximumX: 399,
         maximumY: 399,
-        minimumX: 111,
-        minimumY: 111,
+        minimumX: 112,
+        minimumY: 112,
     });
 
-    await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [1], outputDirectory: join(directory, 'minimum'), sizes: [1], source });
+    await assert.rejects(
+        async () => await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [1], outputDirectory: join(directory, 'minimum'), sizes: [1], source }),
+        /not representable/u,
+    );
+    await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [3], outputDirectory: join(directory, 'odd-safe-output'), sizes: [1], source });
+});
+
+test('preserves its work directory when publication recovery is required', async (context) => {
+    const directory = await temporaryDirectory(context);
+    let workDirectoryPath;
+
+    await assert.rejects(
+        async () =>
+            await workDirectory(directory, (path) => {
+                workDirectoryPath = path;
+
+                throw new PublishBundleError([new Error('publish failed'), new Error('rollback failed')], 'recovery required');
+            }),
+        /recovery required/u,
+    );
+
+    assert.deepEqual(await readdir(workDirectoryPath), []);
+
+    await assert.rejects(
+        async () =>
+            await workDirectory(directory, () => {
+                throw new PublishBundleError([new Error('publish failed')], 'recovery not required');
+            }),
+        /recovery not required/u,
+    );
 });
 
 test('replaces stale managed PWA files and preserves unrelated output', async (context) => {

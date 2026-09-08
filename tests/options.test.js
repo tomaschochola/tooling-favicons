@@ -19,6 +19,8 @@ test('documents the complete preset and renderer contract', () => {
     assert.match(help, /tooling-favicons pwa ANY_SOURCE OUTPUT_DIRECTORY/u);
     assert.match(help, /tooling-favicons ico SOURCE OUTPUT/u);
     assert.match(help, /tooling-favicons png SOURCE OUTPUT/u);
+    assert.match(help, /Transactionally generate/u);
+    assert.match(help, /Concurrent commands must not target the same output directory/u);
     assert.match(help, /favicon\.svg, favicon\.ico, favicon-96x96\.png, and apple-touch-icon\.png/u);
     assert.match(help, /guaranteed maskable safe circle/u);
 

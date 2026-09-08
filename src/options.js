@@ -21,8 +21,8 @@ export const help = `Usage:
 Generate deterministic web, PWA, ICO, and PNG icon files.
 
 Presets:
-  web  Atomically generate favicon.svg, favicon.ico, favicon-96x96.png, and apple-touch-icon.png
-  pwa  Atomically generate icon-SIZExSIZE.png and maskable-icon-SIZExSIZE.png files
+  web  Transactionally generate favicon.svg, favicon.ico, favicon-96x96.png, and apple-touch-icon.png
+  pwa  Transactionally generate icon-SIZExSIZE.png and maskable-icon-SIZExSIZE.png files
 
 Renderers:
   ico  Generate one multi-image ICO file
@@ -32,6 +32,7 @@ Sources:
   SVG, PNG, JPEG, and JPG are supported; FAVICON_SOURCE must be SVG
   Web, PWA, Apple touch, and ICO sources must have square canvases
   SVG artwork must be static and self-contained; convert text to paths
+  Concurrent commands must not target the same output directory
 
 Colors:
   COLOR accepts an opaque Sharp-compatible color or the literal transparent

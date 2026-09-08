@@ -13,6 +13,14 @@
 import { mkdir, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
+export class PublishBundleError extends AggregateError {
+    constructor(errors, message, options = {}) {
+        super(errors, message, options);
+
+        this.recoveryRequired = errors.length > 1;
+    }
+}
+
 async function moveIfPresent(source, target) {
     try {
         await rename(source, target);
@@ -45,7 +53,7 @@ export async function restore(operations) {
     return failures;
 }
 
-export async function publishBundle({ managedNames, outputDirectory, stageDirectory, workDirectory }) {
+export async function publishBundle({ managedNames, outputDirectory, stageDirectory, workDirectory }, restoreOperation = restore) {
     await mkdir(outputDirectory, { recursive: true });
 
     const backupDirectory = join(workDirectory, 'backup');
@@ -63,8 +71,9 @@ export async function publishBundle({ managedNames, outputDirectory, stageDirect
             await moveIfPresent(join(stageDirectory, name), target);
         }
     } catch (error) {
-        const rollbackFailures = await restore(operations);
+        const rollbackFailures = await restoreOperation(operations);
+        const recoveryMessage = rollbackFailures.length === 0 ? '' : ` Recovery data was preserved at ${backupDirectory}.`;
 
-        throw new AggregateError([error, ...rollbackFailures], `Unable to publish generated icon files: ${error.message}`, { cause: error });
+        throw new PublishBundleError([error, ...rollbackFailures], `Unable to publish generated icon files: ${error.message}.${recoveryMessage}`, { cause: error });
     }
 }
