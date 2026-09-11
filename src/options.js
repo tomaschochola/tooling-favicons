@@ -13,54 +13,54 @@
 import { parseArgs } from 'node:util';
 
 export const help = `Usage:
-  tooling-favicons web FAVICON_SOURCE OUTPUT_DIRECTORY --apple-background COLOR [--apple-source SOURCE]
-  tooling-favicons pwa ANY_SOURCE OUTPUT_DIRECTORY --maskable-background COLOR --maskable-fit canvas|safe [--maskable-source SOURCE] [--size SIZE]... [--maskable-size SIZE]...
-  tooling-favicons ico SOURCE OUTPUT --background COLOR [--size SIZE]...
-  tooling-favicons png SOURCE OUTPUT --background COLOR --canvas-size SIZE --artwork-size SIZE
+    tooling-favicons web FAVICON_SOURCE OUTPUT_DIRECTORY --apple-background COLOR [--apple-source SOURCE]
+    tooling-favicons pwa ANY_SOURCE OUTPUT_DIRECTORY --maskable-background COLOR --maskable-fit canvas|safe [--maskable-source SOURCE] [--size SIZE]... [--maskable-size SIZE]...
+    tooling-favicons ico SOURCE OUTPUT --background COLOR [--size SIZE]...
+    tooling-favicons png SOURCE OUTPUT --background COLOR --canvas-size SIZE --artwork-size SIZE
 
 Generate deterministic web, PWA, ICO, and PNG icon files.
 
 Presets:
-  web  Transactionally generate favicon.svg, favicon.ico, favicon-96x96.png, and apple-touch-icon.png
-  pwa  Transactionally generate icon-SIZExSIZE.png and maskable-icon-SIZExSIZE.png files
+    web  Transactionally generate favicon.svg, favicon.ico, favicon-96x96.png, and apple-touch-icon.png
+    pwa  Transactionally generate icon-SIZExSIZE.png and maskable-icon-SIZExSIZE.png files
 
 Renderers:
-  ico  Generate one multi-image ICO file
-  png  Generate one square PNG with explicit canvas and artwork dimensions
+    ico  Generate one multi-image ICO file
+    png  Generate one square PNG with explicit canvas and artwork dimensions
 
 Sources:
-  SVG, PNG, JPEG, and JPG are supported; FAVICON_SOURCE must be SVG
-  Web, PWA, Apple touch, and ICO sources must have square canvases
-  SVG artwork must be static and self-contained; convert text to paths
-  Concurrent commands must not target the same output directory
+    SVG, PNG, JPEG, and JPG are supported; FAVICON_SOURCE must be SVG
+    Web, PWA, Apple touch, and ICO sources must have square canvases
+    SVG artwork must be static and self-contained; convert text to paths
+    Concurrent commands must not target the same output directory
 
 Colors:
-  COLOR accepts an opaque Sharp-compatible color or the literal transparent
-  Apple touch and maskable backgrounds must be opaque
-  Web favicon and ordinary PWA outputs preserve source transparency
+    COLOR accepts an opaque Sharp-compatible color or the literal transparent
+    Apple touch and maskable backgrounds must be opaque
+    Web favicon and ordinary PWA outputs preserve source transparency
 
 Defaults:
-  web: favicon.ico=16,32,48; favicon PNG=96; Apple touch icon=180
-  pwa: ordinary=192,384,512,1024; maskable=512,1024
-  ico: sizes=16,32,48
-  Omitted Apple and maskable sources reuse their command's primary source
+    web: favicon.ico=16,32,48; favicon PNG=96; Apple touch icon=180
+    pwa: ordinary=192,384,512,1024; maskable=512,1024
+    ico: sizes=16,32,48
+    Omitted Apple and maskable sources reuse their command's primary source
 
 Maskable fit:
-  canvas  Map the complete source canvas to the complete output canvas
-  safe    Fit the complete source canvas inside the guaranteed maskable safe circle
+    canvas  Map the complete source canvas to the complete output canvas
+    safe    Fit the complete source canvas inside the guaranteed maskable safe circle
 
 Options:
-  --apple-background COLOR     Apple touch icon background
-  --apple-source SOURCE        Dedicated Apple touch artwork
-  --maskable-background COLOR  Maskable icon background
-  --maskable-fit canvas|safe   Maskable source placement
-  --maskable-source SOURCE     Dedicated maskable artwork
-  --size SIZE                  Ordinary PWA or ICO size; repeatable
-  --maskable-size SIZE         Maskable PWA size; repeatable
-  --background COLOR           ICO or PNG background
-  --canvas-size SIZE           PNG canvas width and height
-  --artwork-size SIZE          PNG artwork bounding-box width and height
-  -h, --help                   Show this help
+    --apple-background COLOR     Apple touch icon background
+    --apple-source SOURCE        Dedicated Apple touch artwork
+    --maskable-background COLOR  Maskable icon background
+    --maskable-fit canvas|safe   Maskable source placement
+    --maskable-source SOURCE     Dedicated maskable artwork
+    --size SIZE                  Ordinary PWA or ICO size; repeatable
+    --maskable-size SIZE         Maskable PWA size; repeatable
+    --background COLOR           ICO or PNG background
+    --canvas-size SIZE           PNG canvas width and height
+    --artwork-size SIZE          PNG artwork bounding-box width and height
+    -h, --help                   Show this help
 `;
 
 function requireString(value, name) {
