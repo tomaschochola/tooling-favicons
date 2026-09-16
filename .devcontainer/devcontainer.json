@@ -15,7 +15,7 @@
     },
     "init": true,
     "postCreateCommand": ["make", "postcreate"],
-    "remoteUser": "node",
+    "remoteUser": "ubuntu",
     "updateRemoteUserUID": true,
     "userEnvProbe": "none",
     "waitFor": "postCreateCommand",
