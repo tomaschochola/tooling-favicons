@@ -26,11 +26,14 @@ never:
 
 # Options
 
-DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
+COMPOSE_PROJECT_NAME ?= tooling-favicons-$(shell pwd -P | sha256sum | cut -c1-16)
+LC_ALL := C.UTF-8
 
-LC_ALL ?= C.UTF-8
+DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
+DEVCONTAINER_TMPDIR := $(CURDIR)/.devcontainer/.tmp
 
 export LC_ALL
+export COMPOSE_PROJECT_NAME
 
 # Public goals
 
@@ -38,7 +41,7 @@ export LC_ALL
 fix: eslint_fix prettier_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint analyze test audit
+check: devcontainer_gate doctor lint analyze test audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check
@@ -50,16 +53,17 @@ lint: eslint_check prettier_check trimmer_check
 analyze: npm_check
 
 .PHONY: test
-test: node_test
+test: devcontainer_gate node_test
 
 .PHONY: audit
 audit: npm_audit
 
 .PHONY: update
-update: npm_config_check ./package.json ./package-lock.json npm_update
+update: npm_config_check npm_update
 
 .PHONY: clean
 clean:
+	rm --force --recursive --one-file-system -- "$(DEVCONTAINER_TMPDIR)"
 
 .PHONY: distclean
 distclean: clean deps_clean
@@ -68,26 +72,50 @@ distclean: clean deps_clean
 postcreate: deps_install
 
 .PHONY: up
-up: devcontainer_check
-	devcontainer up --workspace-folder .
+up: host_gate devcontainer_check
+	mkdir --parents -- "$(DEVCONTAINER_TMPDIR)"
+	env TMPDIR="$(DEVCONTAINER_TMPDIR)" devcontainer up --workspace-folder .
 
 .PHONY: shell
-shell: up
+shell: interactive_gate host_gate up
 	devcontainer exec --workspace-folder . /bin/bash
 
 .PHONY: stop
-stop:
+stop: host_gate
 	docker compose -f "$(DEVCONTAINER_COMPOSE)" stop
 
 .PHONY: down
-down:
+down: host_gate
 	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --remove-orphans
 
 .PHONY: rebuild
-rebuild: devcontainer_check down
-	devcontainer up --workspace-folder . --build-no-cache
+rebuild: host_gate devcontainer_check down
+	mkdir --parents -- "$(DEVCONTAINER_TMPDIR)"
+	env TMPDIR="$(DEVCONTAINER_TMPDIR)" devcontainer up --workspace-folder . --build-no-cache
+
+.PHONY: nuke
+nuke: distclean prune
+
+.PHONY: prune
+prune: host_gate
+	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --volumes --rmi all --remove-orphans
 
 # Protected goals
+
+.PHONY: host_gate
+.SILENT: host_gate
+host_gate:
+	if test -e /.dockerenv; then printf '%s\n' 'host_gate: host only' >&2; exit 1; fi
+
+.PHONY: devcontainer_gate
+.SILENT: devcontainer_gate
+devcontainer_gate:
+	if test ! -e /.dockerenv; then printf '%s\n' 'devcontainer_gate: devcontainer only' >&2; exit 1; fi
+
+.PHONY: interactive_gate
+.SILENT: interactive_gate
+interactive_gate:
+	if test ! -t 0 || test ! -t 1; then printf '%s\n' 'interactive_gate: interactive only' >&2; exit 1; fi
 
 .PHONY: deps_install
 deps_install: npm_install
@@ -168,7 +196,7 @@ git_check:
 	git fsck --full --strict --no-dangling --no-progress
 
 .PHONY: devcontainer_check
-devcontainer_check:
+devcontainer_check: host_gate
 	devcontainer read-configuration --workspace-folder . >/dev/null
 	docker compose -f "$(DEVCONTAINER_COMPOSE)" config --quiet
 	docker build --check --file ./.devcontainer/Dockerfile ./.devcontainer

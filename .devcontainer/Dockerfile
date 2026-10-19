@@ -1,22 +1,22 @@
-# syntax=docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
+# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 
 ARG TARGETARCH
 
 FROM scratch AS node-amd64
 
-ADD --checksum=sha256:855d581f8a4eb1a8117e3426de25fe02770592febcfb31369aee1ffbfee9e8ec \
-    https://nodejs.org/dist/v24.20.0/node-v24.20.0-linux-x64.tar.gz \
+ADD --checksum=sha256:28ea0a438de9a13bd7891fd758eee6c7819ee8af5442dfd8d45bd65e56d4228c \
+    https://nodejs.org/dist/v24.22.0/node-v24.22.0-linux-x64.tar.gz \
     /tmp/node.tgz
 
 FROM scratch AS node-arm64
 
-ADD --checksum=sha256:3515603e2487879a39bc75716f1a2affd027500c64ba50e845cf72cb33219013 \
-    https://nodejs.org/dist/v24.20.0/node-v24.20.0-linux-arm64.tar.gz \
+ADD --checksum=sha256:b7e7991d5407815adfa74a2a9cd4db683552c8ce32ff4a295c22e972849c3f5d \
+    https://nodejs.org/dist/v24.22.0/node-v24.22.0-linux-arm64.tar.gz \
     /tmp/node.tgz
 
 FROM node-${TARGETARCH} AS node
 
-FROM docker.io/library/ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
+FROM docker.io/library/ubuntu:26.04@sha256:c098726dd9b9733f3e885f8de0ef375206a311b0a317eadc40d347b1115fb944
 
 COPY --from=node /tmp/node.tgz /tmp/node.tgz
 
