@@ -4,8 +4,8 @@
 
 The development environment is configured in `.devcontainer/`. Manage it from the repository root on the host using the Makefile targets or directly through the `devcontainer`, `docker` and `docker compose` CLIs.
 
-- `devcontainer`: `ubuntu` 26.04.
-- `wiremock`: `wiremock/wiremock` 3.13.2.
+- `devcontainer`: `ubuntu` 26.04 — Run development tools and workspace commands.
+- `wiremock`: `wiremock/wiremock` 3.13.2 — Mock HTTP APIs for automated tests.
 
 ```sh
 # start the development environment
