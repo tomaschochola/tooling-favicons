@@ -44,7 +44,7 @@
         "Tomáš Chochola",
         "tooling-favicons"
     ],
-    "license": "CC-BY-ND-4.0",
+    "license": "BSD-3-Clause",
     "name": "@tomaschochola/tooling-favicons",
     "private": true,
     "repository": {
