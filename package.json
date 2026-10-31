@@ -19,7 +19,7 @@
         }
     ],
     "dependencies": {
-        "sharp": "^0.35.4",
+        "sharp": "^0.35.5",
         "svgo": "^4.1.0"
     },
     "description": "Command-line favicon and application icon generation for validated SVG and raster sources.",
