@@ -94,7 +94,7 @@ interactive_gate:
 	if test ! -t 0 || test ! -t 1; then printf '%s\n' 'interactive_gate: interactive only' >&2; exit 1; fi
 
 .PHONY: lint
-lint: eslint_check prettier_check trimmer_check
+lint: eslint_check prettier_check shellcheck trimmer_check
 
 .PHONY: node_test
 node_test: ./node_modules/.package-lock.json ./package.json ./package-lock.json
@@ -168,6 +168,12 @@ rebuild: devcontainer_check down | $(CURDIR)/.tmp
 .PHONY: shell
 shell: interactive_gate up
 	devcontainer exec --workspace-folder . /bin/bash
+
+.PHONY: shellcheck
+shellcheck:
+	command -v shellcheck >/dev/null
+	git ls-files -z -- '*.sh' | xargs --null --no-run-if-empty env -u SHELLCHECK_OPTS shellcheck --shell=sh --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
+	git ls-files -z -- '*.bash' | xargs --null --no-run-if-empty env -u SHELLCHECK_OPTS shellcheck --shell=bash --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
 
 .PHONY: stop
 stop:
