@@ -151,7 +151,7 @@ function parsePwa(arguments_) {
         'maskable-fit': { type: 'string' },
         'maskable-size': { multiple: true, type: 'string' },
         'maskable-source': { type: 'string' },
-        size: { multiple: true, type: 'string' },
+        'size': { multiple: true, type: 'string' },
     });
 
     if (values.help) {
@@ -215,7 +215,7 @@ function parseIco(arguments_) {
 function parsePng(arguments_) {
     const { positionals, values } = parseCommand(arguments_, {
         'artwork-size': { type: 'string' },
-        background: { type: 'string' },
+        'background': { type: 'string' },
         'canvas-size': { type: 'string' },
     });
 

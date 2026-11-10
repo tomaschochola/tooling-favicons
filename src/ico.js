@@ -117,16 +117,7 @@ function assertIcoDimensions(dimensions) {
 function invalidPalette(chunk, properties, state) {
     const paletteEntries = chunk.length / 3;
 
-    return (
-        state.seenPalette ||
-        state.seenImageData ||
-        chunk.length === 0 ||
-        chunk.length % 3 !== 0 ||
-        paletteEntries > 256 ||
-        (properties.colorType === 3 && paletteEntries > 2 ** properties.bitDepth) ||
-        properties.colorType === 0 ||
-        properties.colorType === 4
-    );
+    return state.seenPalette || state.seenImageData || chunk.length === 0 || chunk.length % 3 !== 0 || paletteEntries > 256 || (properties.colorType === 3 && paletteEntries > 2 ** properties.bitDepth) || properties.colorType === 0 || properties.colorType === 4;
 }
 
 function inspectPngChunk(chunk, properties, state, inputLength) {

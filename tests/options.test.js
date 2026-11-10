@@ -35,37 +35,16 @@ test('parses complete and default web commands', () => {
 });
 
 test('parses complete and default PWA commands', () => {
-    assert.deepEqual(
-        parseArguments([
-            'pwa',
-            'icon.svg',
-            'public',
-            '--maskable-background',
-            'white',
-            '--maskable-fit',
-            'safe',
-            '--maskable-source',
-            'maskable.svg',
-            '--size',
-            '512',
-            '--size',
-            '192',
-            '--maskable-size',
-            '1024',
-            '--maskable-size',
-            '512',
-        ]),
-        {
-            maskableBackground: 'white',
-            maskableFit: 'safe',
-            maskableSizes: [512, 1024],
-            maskableSource: 'maskable.svg',
-            outputDirectory: 'public',
-            sizes: [192, 512],
-            source: 'icon.svg',
-            type: 'pwa',
-        },
-    );
+    assert.deepEqual(parseArguments(['pwa', 'icon.svg', 'public', '--maskable-background', 'white', '--maskable-fit', 'safe', '--maskable-source', 'maskable.svg', '--size', '512', '--size', '192', '--maskable-size', '1024', '--maskable-size', '512']), {
+        maskableBackground: 'white',
+        maskableFit: 'safe',
+        maskableSizes: [512, 1024],
+        maskableSource: 'maskable.svg',
+        outputDirectory: 'public',
+        sizes: [192, 512],
+        source: 'icon.svg',
+        type: 'pwa',
+    });
 
     assert.deepEqual(parseArguments(['pwa', 'icon.svg', 'public', '--maskable-background', 'black', '--maskable-fit', 'canvas']), {
         maskableBackground: 'black',

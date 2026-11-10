@@ -8,25 +8,7 @@ const staticSvgCssControlPattern = /@import\b|@keyframes\b/iu;
 const staticSvgCssUrlPattern = /url\s*\(/iu;
 const staticSvgInternalCssUrlPattern = /url\s*\(\s*(["']?)#[^)"'\s]+\1\s*\)/giu;
 
-const staticSvgForbiddenElements = new Set([
-    'a',
-    'animate',
-    'animatemotion',
-    'animatetransform',
-    'audio',
-    'discard',
-    'embed',
-    'foreignobject',
-    'iframe',
-    'image',
-    'object',
-    'script',
-    'set',
-    'text',
-    'textpath',
-    'tspan',
-    'video',
-]);
+const staticSvgForbiddenElements = new Set(['a', 'animate', 'animatemotion', 'animatetransform', 'audio', 'discard', 'embed', 'foreignobject', 'iframe', 'image', 'object', 'script', 'set', 'text', 'textpath', 'tspan', 'video']);
 
 function assertStaticSvgValue(value) {
     if (value.includes('\\')) {

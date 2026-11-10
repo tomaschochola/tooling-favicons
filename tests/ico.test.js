@@ -122,20 +122,7 @@ test('rejects invalid palette, image-data, and end-chunk ordering', async () => 
 
     assert.throws(() => createIco([Buffer.concat([signature, header, imageData, end])]), /image data in an invalid position/u);
     assert.throws(() => createIco([Buffer.concat([signature, header, palette, palette, imageData, end])]), /invalid PNG palette/u);
-    assert.throws(
-        () =>
-            createIco([
-                Buffer.concat([
-                    truecolor.subarray(0, 8),
-                    truecolorChunks.find((chunk) => chunk.type === 'IHDR').buffer,
-                    truecolorChunks.find((chunk) => chunk.type === 'IDAT').buffer,
-                    pngChunk('tEXt'),
-                    truecolorChunks.find((chunk) => chunk.type === 'IDAT').buffer,
-                    truecolorChunks.find((chunk) => chunk.type === 'IEND').buffer,
-                ]),
-            ]),
-        /image data in an invalid position/u,
-    );
+    assert.throws(() => createIco([Buffer.concat([truecolor.subarray(0, 8), truecolorChunks.find((chunk) => chunk.type === 'IHDR').buffer, truecolorChunks.find((chunk) => chunk.type === 'IDAT').buffer, pngChunk('tEXt'), truecolorChunks.find((chunk) => chunk.type === 'IDAT').buffer, truecolorChunks.find((chunk) => chunk.type === 'IEND').buffer])]), /image data in an invalid position/u);
     assert.throws(() => createIco([Buffer.concat([signature, header, palette, end])]), /invalid PNG IEND/u);
     assert.throws(() => createIco([Buffer.concat([indexed, Buffer.from([0])])]), /invalid PNG IEND/u);
 });

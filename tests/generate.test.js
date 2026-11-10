@@ -62,14 +62,7 @@ test('generates transparent ordinary and opaque maskable PWA sets with exact fit
     await generatePwa({ maskableBackground: '#000000', maskableFit: 'canvas', maskableSource, outputDirectory: canvasOutput, source });
     await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [512], maskableSource, outputDirectory: safeOutput, sizes: [192], source });
 
-    assert.deepEqual((await readdir(canvasOutput)).sort(), [
-        'icon-1024x1024.png',
-        'icon-192x192.png',
-        'icon-384x384.png',
-        'icon-512x512.png',
-        'maskable-icon-1024x1024.png',
-        'maskable-icon-512x512.png',
-    ]);
+    assert.deepEqual((await readdir(canvasOutput)).sort(), ['icon-1024x1024.png', 'icon-192x192.png', 'icon-384x384.png', 'icon-512x512.png', 'maskable-icon-1024x1024.png', 'maskable-icon-512x512.png']);
 
     const ordinaryPixels = await sharp(join(canvasOutput, 'icon-512x512.png')).ensureAlpha().raw().toBuffer();
     const canvasPixels = await sharp(join(canvasOutput, 'maskable-icon-512x512.png')).raw().toBuffer();
@@ -84,10 +77,7 @@ test('generates transparent ordinary and opaque maskable PWA sets with exact fit
         minimumY: 112,
     });
 
-    await assert.rejects(
-        async () => await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [1], outputDirectory: join(directory, 'minimum'), sizes: [1], source }),
-        /not representable/u,
-    );
+    await assert.rejects(async () => await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [1], outputDirectory: join(directory, 'minimum'), sizes: [1], source }), /not representable/u);
     await generatePwa({ maskableBackground: '#000000', maskableFit: 'safe', maskableSizes: [3], outputDirectory: join(directory, 'odd-safe-output'), sizes: [1], source });
 });
 
@@ -158,19 +148,10 @@ test('rejects invalid contracts before publishing partial output', async (contex
 
     await assert.rejects(async () => await generateWeb({ appleBackground: 'white', outputDirectory: join(directory, 'web'), source: png }), /requires an SVG/u);
     await assert.rejects(async () => await generateWeb({ appleBackground: 'white', outputDirectory: join(directory, 'web'), source: rectangular }), /square canvas/u);
-    await assert.rejects(
-        async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'invalid', outputDirectory: join(directory, 'pwa'), source: square }),
-        /must be "canvas" or "safe"/u,
-    );
+    await assert.rejects(async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'invalid', outputDirectory: join(directory, 'pwa'), source: square }), /must be "canvas" or "safe"/u);
     await assert.rejects(async () => await generatePwa({ maskableBackground: 'transparent', maskableFit: 'canvas', outputDirectory: join(directory, 'pwa'), source: square }), /must be opaque/u);
-    await assert.rejects(
-        async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'canvas', maskableSource: square, outputDirectory: join(directory, 'pwa'), source: rectangular }),
-        /square canvas/u,
-    );
-    await assert.rejects(
-        async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'canvas', maskableSource: rectangular, outputDirectory: join(directory, 'pwa'), source: square }),
-        /square canvas/u,
-    );
+    await assert.rejects(async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'canvas', maskableSource: square, outputDirectory: join(directory, 'pwa'), source: rectangular }), /square canvas/u);
+    await assert.rejects(async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'canvas', maskableSource: rectangular, outputDirectory: join(directory, 'pwa'), source: square }), /square canvas/u);
 
     for (const sizes of [null, [], [16, 16], [0], [10_001], [1.5]]) {
         const options = { maskableBackground: 'white', maskableFit: 'canvas', maskableSizes: [1], outputDirectory: join(directory, 'invalid-sizes'), sizes, source: square };
@@ -181,10 +162,7 @@ test('rejects invalid contracts before publishing partial output', async (contex
     const blockedOutput = join(directory, 'blocked-output');
 
     await writeFile(blockedOutput, 'file');
-    await assert.rejects(
-        async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'canvas', maskableSizes: [1], outputDirectory: blockedOutput, sizes: [1], source: square }),
-        /ENOTDIR/u,
-    );
+    await assert.rejects(async () => await generatePwa({ maskableBackground: 'white', maskableFit: 'canvas', maskableSizes: [1], outputDirectory: blockedOutput, sizes: [1], source: square }), /ENOTDIR/u);
 
     await assert.rejects(async () => await generateIco({ background: 'white', output: join(directory, 'favicon.png'), source: square }), /\.ico extension/u);
     await assert.rejects(async () => await generateIco({ background: 'white', output: join(directory, 'favicon.ico'), sizes: [257], source: square }), /no greater than 256/u);

@@ -17,10 +17,7 @@ async function transform(context, svg) {
 }
 
 test('accepts static self-contained SVG and preserves internal references', async (context) => {
-    const output = await transform(
-        context,
-        '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="paint"><stop offset="0" /></linearGradient></defs><style>.shape{fill:url(#paint)}</style><rect class="shape" width="10" height="10" /></svg>',
-    );
+    const output = await transform(context, '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="paint"><stop offset="0" /></linearGradient></defs><style>.shape{fill:url(#paint)}</style><rect class="shape" width="10" height="10" /></svg>');
 
     assert.match(output, /^<svg\b/u);
     assert.match(output, /id="paint"/u);
